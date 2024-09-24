@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        #chat-log {
+            width: 100%;
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fafafa;
+        }
+
+        .message {
+            margin: 5px 0;
+        }
+
+        .sent-message {
+            color: green;
+            text-align: right;
+        }
+
+        .received-message {
+            color: blue;
+            text-align: left;
+        }
+
+        #typing-notification {
+            color: orange;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h2>Chat Room ({{ request.user }})</h2>
+    <div id="chat-log"></div>
+    <p id="typing-notification"></p> <!-- For typing notification -->
+    
+    <input id="chat-message-input" type="text" placeholder="Type your message here...">
+    <button id="chat-message-submit">Send</button>
+
+    <script>
+        const roomName = "{{ room_name }}";  // Room name will be dynamic
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        const currentUser = "{{ request.user.username }}";
+        const chatLog = document.querySelector('#chat-log');
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const typingNotification = document.querySelector('#typing-notification');
+
+        let typingTimer;
+        const typingInterval = 2000; // 2 seconds of no input to stop typing
+
+        // Message receive hone par is function ko call karenge
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data.message;
+            const user = data.user;
+
+            if (message) {
+                let messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+
+                if (user === currentUser) {
+                    messageElement.classList.add('sent-message');
+                    messageElement.innerHTML = `You: ${message}`;
+                } else {
+                    messageElement.classList.add('received-message');
+                    messageElement.innerHTML = `${user}: ${message}`;
+                }
+
+                chatLog.appendChild(messageElement);
+                chatLog.scrollTop = chatLog.scrollHeight;  // Automatically scroll to the bottom
+            }
+
+            // Typing notification handling
+            if (data.typing !== undefined) {
+                if (data.typing) {
+                    typingNotification.textContent = 'Someone is typing...';
+                } else {
+                    typingNotification.textContent = '';
+                }
+            }
+        };
+
+        // Agar WebSocket close ho jata hai
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        // Enter key press karne par message bhej do
+        messageInputDom.focus();
+        messageInputDom.onkeyup = function(e) {
+            clearTimeout(typingTimer);
+            chatSocket.send(JSON.stringify({ 'typing': true }));
+
+            typingTimer = setTimeout(function() {
+                chatSocket.send(JSON.stringify({ 'typing': false }));
+            }, typingInterval);
+
+            if (e.keyCode === 13) {  // Enter key
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        // Send button click karne par message bhejo
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';  // Clear input after sending
+        };
+    </script>
+    <a href="{% url 'Logout' %}">Logout</a>
+</body>
+</html>
