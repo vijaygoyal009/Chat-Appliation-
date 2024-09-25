@@ -5,42 +5,158 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
     <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background-color: #0084ff;
+            color: white;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
         #chat-log {
-            width: 100%;
-            height: 300px;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 10px;
-            background-color: #fafafa;
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #e9eff4;
+        }
+
+        .message-container {
+            display: flex;
+            align-items: flex-end;
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message {
-            margin: 5px 0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            max-width: 75%;
+            word-wrap: break-word;
+            font-size: 16px;
         }
 
         .sent-message {
-            color: green;
-            text-align: right;
+            background-color: #0084ff;
+            color: white;
+            margin-left: auto;
         }
 
         .received-message {
-            color: blue;
-            text-align: left;
+            background-color: #f1f0f0;
+            color: black;
+            margin-right: auto;
         }
 
         #typing-notification {
-            color: orange;
+            padding: 5px;
+            font-size: 14px;
+            color: #666;
+            height: 20px;
+            margin-bottom: 5px;
+            text-align: left;
             font-style: italic;
+            display: none;
         }
+
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #chat-message-input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            outline: none;
+            font-size: 16px;
+            background-color: #f5f5f5;
+            transition: all 0.3s;
+        }
+
+        #chat-message-input:focus {
+            border-color: #0084ff;
+            background-color: white;
+        }
+
+        #chat-message-submit {
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin-left: 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        #chat-message-submit:hover {
+            background-color: #006bbf;
+        }
+
+        .logout {
+            text-decoration: none;
+            color: #0084ff;
+            display: inline-block;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .logout:hover {
+            color: #006bbf;
+        }
+
     </style>
 </head>
 <body>
-    <h2>Chat Room ({{ request.user }})</h2>
-    <div id="chat-log"></div>
-    <p id="typing-notification"></p> <!-- For typing notification -->
-    
-    <input id="chat-message-input" type="text" placeholder="Type your message here...">
-    <button id="chat-message-submit">Send</button>
+    <div class="chat-container">
+        <div class="chat-header">
+            Chat Room ({{ request.user.username }})
+        </div>
+        <div id="chat-log"></div>
+        <p id="typing-notification">Someone is typing...</p> <!-- For typing notification -->
+
+        <div class="chat-input-area">
+            <input id="chat-message-input" type="text" placeholder="Type your message...">
+            <button id="chat-message-submit">Send</button>
+        </div>
+        <a href="{% url 'Logout' %}" class="logout">Logout</a>
+    </div>
 
     <script>
         const roomName = "{{ room_name }}";  // Room name will be dynamic
@@ -64,16 +180,20 @@
 
             if (message) {
                 let messageElement = document.createElement('div');
-                messageElement.classList.add('message');
+                messageElement.classList.add('message-container');
+
+                let messageBubble = document.createElement('div');
+                messageBubble.classList.add('message');
 
                 if (user === currentUser) {
-                    messageElement.classList.add('sent-message');
-                    messageElement.innerHTML = `You: ${message}`;
+                    messageBubble.classList.add('sent-message');
+                    messageBubble.innerHTML = `You: ${message}`;
                 } else {
-                    messageElement.classList.add('received-message');
-                    messageElement.innerHTML = `${user}: ${message}`;
+                    messageBubble.classList.add('received-message');
+                    messageBubble.innerHTML = `${user}: ${message}`;
                 }
 
+                messageElement.appendChild(messageBubble);
                 chatLog.appendChild(messageElement);
                 chatLog.scrollTop = chatLog.scrollHeight;  // Automatically scroll to the bottom
             }
@@ -81,9 +201,9 @@
             // Typing notification handling
             if (data.typing !== undefined) {
                 if (data.typing) {
-                    typingNotification.textContent = 'Someone is typing...';
+                    typingNotification.style.display = 'block';
                 } else {
-                    typingNotification.textContent = '';
+                    typingNotification.style.display = 'none';
                 }
             }
         };
@@ -111,12 +231,13 @@
         // Send button click karne par message bhejo
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            messageInputDom.value = '';  // Clear input after sending
+            if (message.trim() !== "") {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInputDom.value = '';  // Clear input after sending
+            }
         };
     </script>
-    <a href="{% url 'Logout' %}">Logout</a>
 </body>
 </html>
