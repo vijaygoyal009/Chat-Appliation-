@@ -76,6 +76,12 @@
             margin-right: auto;
         }
 
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-left: 10px;
+        }
+
         #typing-notification {
             padding: 5px;
             font-size: 14px;
@@ -140,7 +146,6 @@
         .logout:hover {
             color: #006bbf;
         }
-
     </style>
 </head>
 <body>
@@ -149,7 +154,7 @@
             Chat Room ({{ request.user.username }})
         </div>
         <div id="chat-log"></div>
-        <p id="typing-notification">Someone is typing...</p> <!-- For typing notification -->
+        <p id="typing-notification">{{request.user}} is typing...</p>
 
         <div class="chat-input-area">
             <input id="chat-message-input" type="text" placeholder="Type your message...">
@@ -172,48 +177,64 @@
         let typingTimer;
         const typingInterval = 2000; // 2 seconds of no input to stop typing
 
-        // Message receive hone par is function ko call karenge
+        function loadMessages() {
+            const messages = JSON.parse(sessionStorage.getItem('chatMessages')) || [];
+            messages.forEach(data => {
+                appendMessage(data.user, data.message, data.time);
+            });
+        }
+
+        function appendMessage(user, message, time) {
+            let messageElement = document.createElement('div');
+            messageElement.classList.add('message-container');
+
+            let messageBubble = document.createElement('div');
+            messageBubble.classList.add('message');
+
+            let timestampElement = document.createElement('span');
+            timestampElement.classList.add('timestamp');
+            timestampElement.innerHTML = time;
+
+            if (user === currentUser) {
+                messageBubble.classList.add('sent-message');
+                messageBubble.innerHTML = `You: ${message}`;
+            } else {
+                messageBubble.classList.add('received-message');
+                messageBubble.innerHTML = `${user}: ${message}`;
+            }
+
+            messageElement.appendChild(messageBubble);
+            messageBubble.appendChild(timestampElement); // Add timestamp to message bubble
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight;  // Automatically scroll to the bottom
+        }
+
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             const message = data.message;
             const user = data.user;
 
             if (message) {
-                let messageElement = document.createElement('div');
-                messageElement.classList.add('message-container');
+                const timestamp = new Date().toLocaleTimeString(); // Get current time
+                appendMessage(user, message, timestamp);
 
-                let messageBubble = document.createElement('div');
-                messageBubble.classList.add('message');
-
-                if (user === currentUser) {
-                    messageBubble.classList.add('sent-message');
-                    messageBubble.innerHTML = `You: ${message}`;
-                } else {
-                    messageBubble.classList.add('received-message');
-                    messageBubble.innerHTML = `${user}: ${message}`;
-                }
-
-                messageElement.appendChild(messageBubble);
-                chatLog.appendChild(messageElement);
-                chatLog.scrollTop = chatLog.scrollHeight;  // Automatically scroll to the bottom
+                // Save message to session storage
+                const messages = JSON.parse(sessionStorage.getItem('chatMessages')) || [];
+                messages.push({ user, message, time: timestamp }); // Include time in saved messages
+                sessionStorage.setItem('chatMessages', JSON.stringify(messages));
             }
 
-            // Typing notification handling
             if (data.typing !== undefined) {
-                if (data.typing) {
-                    typingNotification.style.display = 'block';
-                } else {
-                    typingNotification.style.display = 'none';
-                }
+                typingNotification.style.display = data.typing ? 'block' : 'none';
             }
         };
 
-        // Agar WebSocket close ho jata hai
         chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
         };
 
-        // Enter key press karne par message bhej do
+        loadMessages();
+
         messageInputDom.focus();
         messageInputDom.onkeyup = function(e) {
             clearTimeout(typingTimer);
@@ -228,10 +249,10 @@
             }
         };
 
-        // Send button click karne par message bhejo
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const message = messageInputDom.value;
             if (message.trim() !== "") {
+                const timestamp = new Date().toLocaleTimeString(); // Get current time
                 chatSocket.send(JSON.stringify({
                     'message': message
                 }));
