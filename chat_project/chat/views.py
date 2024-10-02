@@ -27,8 +27,6 @@ def register(request):
 
 
 
-# views.py
-
 def user_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)

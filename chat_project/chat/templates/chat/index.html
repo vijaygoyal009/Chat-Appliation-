@@ -15,12 +15,63 @@
             height: 100vh;
             margin: 0;
         }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #0056b3;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-icon {
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .welcome-text {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .logout-button {
+            padding: 8px 12px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-right: 50px; /* Adjusted margin */
+
+        }
+        .logout-button:hover {
+            background-color: #cc0000;
+        }
         h1 {
             color: #333;
             margin-bottom: 20px;
         }
         input[type="text"] {
-            width: 300px;
+            width: 80%; /* Responsive width */
+            max-width: 300px; /* Maximum width on larger screens */
             padding: 10px;
             border: 2px solid #007BFF;
             border-radius: 5px;
@@ -51,10 +102,45 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 100px; /* Adjust to make space for the header */
+            width: 90%;
+            max-width: 400px;
+        }
+
+        /* Media Query for smaller screens */
+        @media (max-width: 600px) {
+            .welcome-text {
+                font-size: 16px;
+            }
+            .logout-button {
+                font-size: 14px;
+                padding: 6px 10px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            input[type="text"], input[type="button"] {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            .container {
+                padding: 15px;
+                margin-top: 80px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Welcome and Logout Section -->
+    <div class="header">
+        <div class="header-content">
+            <div class="user-icon">U</div> <!-- User Icon -->
+            <div class="welcome-text">Welcome, <span id="username">Username</span></div>
+        </div>
+        <button class="logout-button" onclick="window.location.href='{% url 'Logout' %}'">Logout</button>
+    </div>
+
+    <!-- Main Chat Room Section -->
     <div class="container">
         <h1>Enter Chat Room</h1>
         <p>What chat room would you like to enter?</p>
@@ -63,19 +149,24 @@
     </div>
 
     <script>
+        // Set the username dynamically if it's available from the server
+        const username = "{{request.user}}"; // Replace this with dynamic data from your server if available
+        document.getElementById('username').textContent = username;
+
+        // Handle room enter on button click or Enter key
         document.querySelector('#room-name-input').focus();
         document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
+            if (e.key === 'Enter') {
                 document.querySelector('#room-name-submit').click();
             }
         };
 
         document.querySelector('#room-name-submit').onclick = function(e) {
             var roomName = document.querySelector('#room-name-input').value;
-            if (roomName) {  // Check if room name is not empty
+            if (roomName) {
                 window.location.pathname = '/chat/' + roomName + '/';
             } else {
-                alert('Please enter a room name.');  // Alert if input is empty
+                alert('Please enter a room name.');
             }
         };
     </script>
