@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f0f8ff;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -134,8 +134,8 @@
     <!-- Welcome and Logout Section -->
     <div class="header">
         <div class="header-content">
-            <div class="user-icon">U</div> <!-- User Icon -->
-            <div class="welcome-text">Welcome, <span id="username">Username</span></div>
+            <div class="user-icon">{{ request.user.username.upper.0 }}</div> <!-- User Icon -->
+            <div class="welcome-text">Welcome, <span id="">{{ request.user|capfirst}}</span></div>
         </div>
         <button class="logout-button" onclick="window.location.href='{% url 'Logout' %}'">Logout</button>
     </div>
@@ -164,7 +164,7 @@
         document.querySelector('#room-name-submit').onclick = function(e) {
             var roomName = document.querySelector('#room-name-input').value;
             if (roomName) {
-                window.location.pathname = '/chat/' + roomName + '/';
+                window.location.pathname = '/' + roomName + '/';
             } else {
                 alert('Please enter a room name.');
             }

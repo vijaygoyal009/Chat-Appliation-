@@ -1,19 +1,68 @@
-<html>
-    <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    </head>
-    <body>
+        h1 {
+            color: #333;
+            font-size: 36px;
+        }
 
-        <h1>Welcome To our Chat Application </h1>
-        
-        <div>
-        <h2>Please Chhose option</h2>
-        <a href="{% url 'register' %}">Register</a> | <a href="{% url 'login' %}">Login</a>
+        h2 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 0 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-group {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome To Our Chat Application</h1>
+        <h2>Please Choose an Option</h2>
+        <div class="btn-group">
+            <a href="{% url 'register' %}">Register</a>
+            <a href="{% url 'login' %}">Login</a>
         </div>
-        
-    </body>
+    </div>
+
+</body>
 </html>
-
-
-
-{% comment %} please make it this html page nice and look beautyful {% endcomment %}
