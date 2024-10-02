@@ -5,9 +5,14 @@ from .forms import UserRegisterForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login,logout
 
-def index(request):
-    return render(request, "chat/index.html")
 
+def home(request):
+    return render(request , 'chat/index.html')
+
+
+
+def index(request):
+    return render(request, "chat/index1.html")
 
 def room(request, room_name):
     return render(request, "chat/room.html", {"room_name": room_name})
